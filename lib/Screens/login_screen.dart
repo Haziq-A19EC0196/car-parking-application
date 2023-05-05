@@ -1,3 +1,4 @@
+import 'package:car_parking_application/Screens/availability_screen.dart';
 import 'package:car_parking_application/Screens/signup_screen.dart';
 import 'package:car_parking_application/Screens/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,27 +20,27 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController passwordController = TextEditingController();
 
   // Login function
-  static Future<User?> loginWithEmailPassword({
-    required String email,
-    required String password,
-    required BuildContext context
-  }) async {
-    FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-    User? user;
-    try {
-      UserCredential userCredential = await firebaseAuth
-          .signInWithEmailAndPassword(
-          email: email,
-          password: password);
-      user = userCredential.user;
-    } on FirebaseAuthException catch (e) {
-      if (e.code == "user-not-found") {
-        print("No user associated with that email.");
-      }
-    }
-
-    return user;
-  }
+  // static Future<User?> loginWithEmailPassword({
+  //   required String email,
+  //   required String password,
+  //   required BuildContext context
+  // }) async {
+  //   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  //   User? user;
+  //   try {
+  //     UserCredential userCredential = await firebaseAuth
+  //         .signInWithEmailAndPassword(
+  //         email: email,
+  //         password: password);
+  //     user = userCredential.user;
+  //   } on FirebaseAuthException catch (e) {
+  //     if (e.code == "user-not-found") {
+  //       print("No user associated with that email.");
+  //     }
+  //   }
+  //
+  //   return user;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +96,12 @@ class _LoginPageState extends State<LoginPage> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0)
                 ),
-                onPressed: login,
+                onPressed: () async {
+                  final email = emailController.text.trim();
+                  final pass = passwordController.text.trim();
+
+                  await login(email, pass);
+                },
                 child: const Text(
                   "Login",
                   style: TextStyle(
@@ -109,7 +115,9 @@ class _LoginPageState extends State<LoginPage> {
               height: 40.0,
             ),
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+
+              },
               child: const Text(
                 "Forgot password?",
                 style: TextStyle(
@@ -145,10 +153,10 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future login() async {
+  Future login(String email, String password) async {
     await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim())
+        email: email,
+        password: password)
     .then((value) => {
       Fluttertoast.showToast(
           msg: "You have signed in",
