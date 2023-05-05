@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "911499303394",
+    "firebase_url": "https://parkingapplication-e49be-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "parkingapplication-e49be",
     "storage_bucket": "parkingapplication-e49be.appspot.com"
   },
@@ -13,6 +14,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "911499303394-0reino6nmgqfd0lqvf87p21b0lteh489.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.car_parking_application",
+            "certificate_hash": "50e825322c74176a037d50ba13ab2a611b2cf271"
+          }
+        },
         {
           "client_id": "911499303394-aoos7c6jmga1dkfd31b17f5m84e53m3c.apps.googleusercontent.com",
           "client_type": 3
@@ -29,6 +38,13 @@
             {
               "client_id": "911499303394-aoos7c6jmga1dkfd31b17f5m84e53m3c.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "911499303394-kfflklu4007h8moc2unvmmdtf2d7nqrk.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.carParkingApplication"
+              }
             }
           ]
         }
