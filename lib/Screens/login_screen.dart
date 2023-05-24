@@ -1,10 +1,12 @@
-import 'package:car_parking_application/Screens/availability_screen.dart';
+import 'package:car_parking_application/Screens/reset_password_screen.dart';
 import 'package:car_parking_application/Screens/signup_screen.dart';
 import 'package:car_parking_application/Screens/home_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../Logics/user_model.dart';
 import '../custom_widgets.dart';
 
 class LoginPage extends StatefulWidget {
@@ -44,130 +46,157 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              "AEON Parking App",
-              style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 30.0,
-                  fontWeight: FontWeight.bold
-              ),
-            ),
-            const Text(
-              "Welcome! Please log in to enter",
-              style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 25.0,
-                  fontWeight: FontWeight.normal
-              ),
-            ),
-            const SizedBox(
-              height: 50.0,
-            ),
-            customTextField(
-                "Email",
-                Icons.mail,
-                false,
-                emailController
-            ),
-            const SizedBox(
-              height: 35.0,
-            ),
-            customTextField(
-                "Password",
-                Icons.key,
-                true,
-                passwordController
-            ),
-            const SizedBox(
-              height: 50.0,
-            ),
-            SizedBox(
-              width: 150.0,
-              child: RawMaterialButton(
-                fillColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(vertical: 15.0),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0)
-                ),
-                onPressed: () async {
-                  final email = emailController.text.trim();
-                  final pass = passwordController.text.trim();
-
-                  await login(email, pass);
-                },
-                child: const Text(
-                  "Login",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18.0
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 40.0,
-            ),
-            GestureDetector(
-              onTap: () {
-
-              },
-              child: const Text(
-                "Forgot password?",
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Login"),
+          centerTitle: true,
+        ),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Column(
+            // mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+              const Text(
+                "AEON Parking App",
                 style: TextStyle(
-                  color: Colors.blue
+                    color: Colors.black,
+                    fontSize: 25.0,
+                    fontWeight: FontWeight.bold
                 ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(
-              height: 10.0,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "Don't have an account yet? ",
+              SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+              const Text(
+                "Welcome!\nPlease log in to enter",
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.normal
                 ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const SignupPage()));
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.05,
+              ),
+              customTextField(
+                  "Email",
+                  Icons.mail,
+                  false,
+                  emailController
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.03,
+              ),
+              customTextField(
+                  "Password",
+                  Icons.key,
+                  true,
+                  passwordController
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.075,
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.75,
+                child: RawMaterialButton(
+                  fillColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0)
+                  ),
+                  onPressed: () async {
+                    final email = emailController.text.trim();
+                    final pass = passwordController.text.trim();
+
+                    await login(email, pass);
                   },
                   child: const Text(
-                    "Sign Up",
+                    "Login",
                     style: TextStyle(
-                      color: Colors.blue
+                        color: Colors.white,
+                        fontSize: 18.0
                     ),
                   ),
-                )
-              ]
-            ),
-          ],
-        ),
+                ),
+              ),
+              const SizedBox(
+                height: 40.0,
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ResetPasswordScreen()));
+                },
+                child: const Text(
+                  "Forgot password?",
+                  style: TextStyle(
+                    color: Colors.blue
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 10.0,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Don't have an account yet? ",
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const SignupPage()));
+                    },
+                    child: const Text(
+                      "Sign Up",
+                      style: TextStyle(
+                        color: Colors.blue
+                      ),
+                    ),
+                  )
+                ]
+              ),
+            ],
+          ),
+        )
       )
     );
   }
 
   Future login(String email, String password) async {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
+    UserCredential userCred = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
-        password: password)
-    .then((value) => {
+        password: password);
+
+    final snapshot = await FirebaseFirestore.instance.collection("customers").doc(userCred.user!.uid).get();
+    final user = UserModel.fromJson(snapshot.data()!);
+    user.userId = userCred.user!.uid;
+
+    if (userCred.user!.emailVerified && mounted) {
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(user: user,)));
+    } else {
       Fluttertoast.showToast(
-          msg: "You have signed in",
+          msg: "Check your email and verify your account",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           fontSize: 16.0
-      ),
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()))
-    })
-    .catchError((onError) {
-      Fluttertoast.showToast(msg: onError!.message);
-    });
+      );
+    }
+  }
+
+  Future<UserModel?> getUserData() async {
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    final docUser = FirebaseFirestore.instance.collection("customers").doc(userId);
+    final snapshot = await docUser.get();
+
+    if(snapshot.exists) {
+      return UserModel.fromJson(snapshot.data()!);
+    }
+
+    return null;
   }
 }

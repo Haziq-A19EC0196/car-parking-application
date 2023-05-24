@@ -1,4 +1,3 @@
-import 'package:car_parking_application/Screens/home_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -10,51 +9,63 @@ class AvailabilityScreen extends StatefulWidget {
 }
 
 class _AvailabilityScreenState extends State<AvailabilityScreen> {
-  final Stream<DocumentSnapshot> _parkingStream = FirebaseFirestore.instance.collection('parkingLot').doc("parking1").snapshots();
+  final Stream<QuerySnapshot> _stream = FirebaseFirestore.instance.collection("parkingLot").snapshots();
 
   @override
   Widget build(BuildContext context) {
 
     Widget availabilityWidget = Scaffold(
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: _parkingStream,
-        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+      backgroundColor: Colors.white,
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _stream,
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return const Text('Something went wrong');
-          }
+          } else if (snapshot.hasData) {
+            var data = snapshot.data!;
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Text("Loading");
-          }
+            var parking1 = data.docs[0]["isEmpty"];
+            var parking2 = data.docs[1]["isEmpty"];
 
-          var data = snapshot.data!;
+            Widget img = Image.asset("assets/car-transparent.png", scale: 5,);
 
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(data["isEmpty"] ? "The parking lot is empty" : "The parking lot is not empty"),
-              SizedBox(
-                width: 150.0,
-                child: RawMaterialButton(
-                  fillColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 15.0),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()));
-                  },
-                  child: const Text(
-                    "Back",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18.0
-                    ),
-                  ),
+            Widget row = Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Container(
+                  color: parking1 ? Colors.green : Colors.red,
+                  child: img,
                 ),
+                Container(
+                  color: parking2 ? Colors.green : Colors.red,
+                  child: img,
+                ),
+
+              ],
+            );
+
+            Widget scaffold = Scaffold(
+              appBar: AppBar(
+                title: const Text("Availability"),
+                centerTitle: true,
               ),
-            ],
-          );
+              body: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.15,),
+                  Text("Parking 1 is ${parking1 ? "empty" : "not empty"}"),
+                  Text("Parking 2 is ${parking2 ? "empty" : "not empty"}"),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.1,),
+                  row,
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.1,),
+                ],
+              ),
+            );
+
+            return scaffold;
+          } else {
+            return const Center(child: CircularProgressIndicator(),);
+          }
         },
       ),
     );

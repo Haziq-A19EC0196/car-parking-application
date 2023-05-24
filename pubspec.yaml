@@ -39,6 +39,11 @@ dependencies:
   # add this line to your dependencies (toast)
   fluttertoast: ^8.0.9
   cloud_firestore: ^4.4.5
+  # For QR (Ref: https://www.geeksforgeeks.org/flutter-qr-code-scanner-and-qr-generator/)
+  path_provider: ^2.0.14
+  qr_flutter: ^4.0.0
+  qr_code_scanner: ^1.0.1
+  # barcode_scan_fix: ^1.0.2
 
 dev_dependencies:
   flutter_test:
@@ -63,9 +68,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

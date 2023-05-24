@@ -1,3 +1,4 @@
+import 'package:car_parking_application/Logics/user_model.dart';
 import 'package:car_parking_application/Screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
     ]);
 
     return const MaterialApp(
+      // theme: ThemeData(primarySwatch: Colors.purple),
       home: HomePage(),
     );
   }
@@ -48,7 +50,8 @@ class _HomePageState extends State<HomePage> {
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return const HomeScreen();
+              UserModel user = UserModel(name: "test", email: "test", phone: "test", inside: false);
+              return HomeScreen(user: user,);
             } else {
               return const LoginPage();
             }
