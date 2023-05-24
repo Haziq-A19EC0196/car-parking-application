@@ -154,9 +154,11 @@ class _SignupPageState extends State<SignupPage> {
 
     final userData = UserModel(
       name: name,
-      phone: phone,
       email: email,
+      phone: phone,
+      parkingRef: [],
       inside: false,
+      balance: 0,
     );
 
     await user.set(userData.toJson());

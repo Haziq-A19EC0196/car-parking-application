@@ -1,6 +1,7 @@
 import 'package:car_parking_application/Logics/user_model.dart';
 import 'package:car_parking_application/Screens/availability_screen.dart';
 import 'package:car_parking_application/Screens/qr_screen.dart';
+import 'package:car_parking_application/Screens/topup_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -21,148 +22,144 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    final Stream<DocumentSnapshot<Map<String, dynamic>>> userStream = FirebaseFirestore.instance.collection("customers").doc(widget.user.userId).snapshots();
 
-    Widget menuScreen = Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: const Text("Parking Application"),
         centerTitle: true,
       ),
       drawer: Drawer(
         child: ListView(
-          children: const [
-            ListTile(
-              iconColor: Colors.redAccent,
-              leading: Icon(Icons.logout),
-              title: Text(
-                "Logout",
-                style: TextStyle(
-                  fontSize: 15.0,
+          physics: const BouncingScrollPhysics(),
+          children: [
+            InkWell(
+              onTap: () {
+                // Navigate to profile page
+              },
+              child: const ListTile(
+                iconColor: Colors.black,
+                leading: Icon(Icons.person),
+                title: Text(
+                  "Profile",
+                  style: TextStyle(
+                    fontSize: 15.0,
+                  ),
+                ),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                // Navigate to History screen
+              },
+              child: const ListTile(
+                leading: Icon(Icons.history),
+                title: Text(
+                  "History",
+                  style: TextStyle(
+                    fontSize: 15.0,
+                  ),
+                ),
+              ),
+            ),
+            InkWell(
+              onTap: logout,
+              child: const ListTile(
+                iconColor: Colors.redAccent,
+                leading: Icon(Icons.logout),
+                title: Text(
+                  "Logout",
+                  style: TextStyle(
+                    fontSize: 15.0,
+                  ),
                 ),
               ),
             ),
           ],
         ),
       ),
-      body: FutureBuilder<UserModel?> (
-        future: getUserData(),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>> (
+        stream: userStream,
         builder: (context, snapshot) {
           if(snapshot.hasError) {
             return Text("Something went wrong! ${snapshot.error.toString()}");
           } else if(snapshot.hasData) {
-            final user = snapshot.data;
+            final user = UserModel.fromJson(snapshot.data!.data()!);
+            // debugPrint("from snapshot: ${snapshot.data!.data().toString()}");
+            // debugPrint("from UserModel: ${user.toJson()}");
 
-            if(user==null) {
-              return const Text("Something went wrong!");
+            final List menuList = ["Check parking availability", "Scan QR Code", "Top up Credit"];
+            final List navigation = [
+              (context) => const AvailabilityScreen(),
+              (context) => QRScreen(user: widget.user),
+              (context) => const TopUpScreen()
+            ];
+            
+            Widget timeLeft;
+            
+            if(user.inside) {
+              final parkingRefStream = FirebaseFirestore.instance.collection("parkingEntry").doc(user.parkingRef.last).snapshots();
+
+              parkingRefStream.listen((event) {
+                debugPrint("parkingStream listen");
+                Timestamp timestamp = event.data()!['entryTime'];
+                DateTime dateTime = timestamp.toDate();
+              });
             } else {
-              Widget welcomeMessage = Column(
+              timeLeft = const Text("data");
+            }
+
+            return Column(
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+                Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                        "Welcome to the application, ${user.name}"
+                      "Welcome to the application, ${user.name}"
                     ),
                     Text(
                       "Email: ${user.email}",
                     ),
                   ]
-              );
-
-              List<Widget> menuItems = [
-                Card(
-                  clipBehavior: Clip.hardEdge,
-                  child: InkWell(
-                    splashColor: Colors.blue.withAlpha(30),
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AvailabilityScreen()));
-                    },
-                    child: const Text(
-                      'Check parking availability',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15.0,
-                      ),
-                    ),
-                  ),
                 ),
-                Card(
-                  clipBehavior: Clip.hardEdge,
-                  child: InkWell(
-                    splashColor: Colors.blue.withAlpha(30),
-                    child: const Text("Scan QR Code"),
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => QRScreen(user: user,)));
-                      // await testFunc();
-                    },
-                  ),
-                ),
-                Card(
-                  clipBehavior: Clip.hardEdge,
-                  child: InkWell(
-                    splashColor: Colors.blue.withAlpha(30),
-                    child: const Text("Top up credit"),
-                    onTap: () {},
-                  ),
-                )
-              ];
-
-              Widget gridMenu = SizedBox(
+                SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+                SizedBox(
                   height: MediaQuery.of(context).size.height * 0.5,
                   width: MediaQuery.of(context).size.width,
-                  child: ListView(
-                    children: menuItems,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: menuList.length,
+                    itemBuilder: (_, int index) {
+                      return SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        child: Card(
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(builder: navigation[index]));
+                            },
+                            child: Text(
+                              menuList[index],
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 15.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
                   )
-                  // GridView.count(
-                  //   crossAxisCount: 1,
-                  //   childAspectRatio: 2,
-                  //   padding: EdgeInsets.symmetric(
-                  //     // vertical: 10.0,
-                  //     horizontal: MediaQuery.of(context).size.width * 0.05,
-                  //   ),
-                  //   children: menuItems,
-                  // )
-              );
-
-              Widget logoutButton = SizedBox(
-                width: MediaQuery.of(context).size.width * 0.5,
-                child: RawMaterialButton(
-                  fillColor: Colors.redAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 15.0),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)
-                  ),
-                  onPressed: logout,
-                  child: const Text(
-                    "Log Out",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18.0
-                    ),
-                  ),
                 ),
-              );
-
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
-                    welcomeMessage,
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
-                    gridMenu,
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
-                    logoutButton
-                  ],
-                ),
-              );
-            }
+              ],
+            );
           } else {
             return const Center(child: CircularProgressIndicator(),);
           }
         },
       ),
     );
-    
-    return menuScreen;
   }
 
   Future logout() async {
