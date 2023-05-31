@@ -1,7 +1,13 @@
+import 'dart:async';
+
+import 'package:car_parking_application/Logics/local_auth_api.dart';
 import 'package:car_parking_application/Logics/user_model.dart';
 import 'package:car_parking_application/Screens/availability_screen.dart';
+import 'package:car_parking_application/Screens/history_screen.dart';
+import 'package:car_parking_application/Screens/profile_screen.dart';
 import 'package:car_parking_application/Screens/qr_screen.dart';
 import 'package:car_parking_application/Screens/topup_screen.dart';
+import 'package:car_parking_application/custom_widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             InkWell(
               onTap: () {
-                // Navigate to profile page
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ProfileScreen()));
               },
               child: const ListTile(
                 iconColor: Colors.black,
@@ -49,8 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             InkWell(
-              onTap: () {
-                // Navigate to History screen
+              onTap: () async {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => HistoryScreen(user: widget.user)));
               },
               child: const ListTile(
                 leading: Icon(Icons.history),
@@ -85,75 +91,215 @@ class _HomeScreenState extends State<HomeScreen> {
             return Text("Something went wrong! ${snapshot.error.toString()}");
           } else if(snapshot.hasData) {
             final user = UserModel.fromJson(snapshot.data!.data()!);
-            // debugPrint("from snapshot: ${snapshot.data!.data().toString()}");
-            // debugPrint("from UserModel: ${user.toJson()}");
+            user.userId = FirebaseAuth.instance.currentUser!.uid;
 
-            final List menuList = ["Check parking availability", "Scan QR Code", "Top up Credit"];
+            final List menuList = ["Parking\navailability", "Scan\nQR"];
             final List navigation = [
               (context) => const AvailabilityScreen(),
-              (context) => QRScreen(user: widget.user),
-              (context) => const TopUpScreen()
+              (context) => QRScreen(user: user),
             ];
-            
-            Widget timeLeft;
-            
-            if(user.inside) {
-              final parkingRefStream = FirebaseFirestore.instance.collection("parkingEntry").doc(user.parkingRef.last).snapshots();
+            final List icons = [const Icon(Icons.car_repair, size: 40), const Icon(Icons.qr_code, size: 40,)];
 
-              parkingRefStream.listen((event) {
-                debugPrint("parkingStream listen");
-                Timestamp timestamp = event.data()!['entryTime'];
-                DateTime dateTime = timestamp.toDate();
-              });
-            } else {
-              timeLeft = const Text("data");
-            }
-
-            return Column(
-              children: [
-                SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Welcome to the application, ${user.name}"
-                    ),
-                    Text(
-                      "Email: ${user.email}",
-                    ),
-                  ]
-                ),
-                SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.5,
-                  width: MediaQuery.of(context).size.width,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: menuList.length,
-                    itemBuilder: (_, int index) {
-                      return SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.1,
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              child: Column(
+                children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      homeScreenText("Balance"),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.2,
+                        width: MediaQuery.of(context).size.width * 0.9,
                         child: Card(
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(builder: navigation[index]));
-                            },
-                            child: Text(
-                              menuList[index],
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 15.0,
-                              ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topRight,
+                                end: Alignment.bottomLeft,
+                                colors: [
+                                  Colors.blue,
+                                  Colors.red
+                                ]
+                              )
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Positioned(
+                                  left: 30,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      const Text(
+                                        "Your balance:",
+                                        style: TextStyle(
+                                            color: Colors.white
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10,),
+                                      Text(
+                                        user.balance.toStringAsFixed(2),
+                                        style: const TextStyle(
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: -3,
+                                            color: Colors.white70
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 30,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const TopUpScreen()));
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                      backgroundColor: Colors.grey,
+                                    ),
+                                    child: const Text(
+                                      "+ Reload",
+                                      style: TextStyle(
+                                          color: Colors.black87
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      );
-                    }
-                  )
-                ),
-              ],
+                      ),
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+                      homeScreenText("Parking Status"),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.2,
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: user.inside ? FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                            future: FirebaseFirestore.instance.collection("parkingEntry").doc(user.parkingRef.last).get(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasError) {
+                                return const Text("Error");
+                              }
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
+                              Timestamp entryTime = snapshot.data!.data()!['entryTime'];
+                              DateTime entryDateTime = entryTime.toDate();
+
+                              String convertedEntryTime = "${entryDateTime.hour.toString()}:${entryDateTime.minute.toString()}  ${entryDateTime.day.toString()}/${entryDateTime.month.toString()}/${entryDateTime.year.toString()}";
+                              return Container(
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    gradient: const LinearGradient(
+                                        begin: Alignment.centerRight,
+                                        end: Alignment.centerLeft,
+                                        colors: [
+                                          Colors.lightGreen,
+                                          Colors.white70
+                                        ]
+                                    )
+                                ),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Positioned(
+                                      left: 20,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          const Icon(Icons.check_circle_outline, color: Colors.lightGreen, size: 40),
+                                          const SizedBox(width: 10,),
+                                          Text(
+                                            "Park time: $convertedEntryTime",
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ) :
+                          Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                gradient: LinearGradient(
+                                    begin: Alignment.centerRight,
+                                    end: Alignment.centerLeft,
+                                    colors: [
+                                      Colors.redAccent.shade100,
+                                      Colors.white70
+                                    ]
+                                )
+                            ),
+                            child: const Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Positioned(
+                                  left: 20,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Icon(Icons.close, color: Colors.redAccent, size: 40),
+                                      SizedBox(width: 10,),
+                                      Text(
+                                        "You are currently not parked",
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+                      homeScreenText("Menu"),
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.175,
+                        width: MediaQuery.of(context).size.width,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: menuList.length,
+                          itemBuilder: (_, int index) {
+                            return MenuButton(icon: icons[index], text: menuList[index], route: navigation[index]);
+                          }
+                        )
+                      ),
+                    ]
+                  ),
+                ],
+              ),
             );
+
           } else {
             return const Center(child: CircularProgressIndicator(),);
           }

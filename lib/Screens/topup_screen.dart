@@ -85,7 +85,6 @@ class _TopUpScreenState extends State<TopUpScreen> {
                   ),
                   onPressed: () {
                     if(formKey.currentState!.validate()) {
-                      Fluttertoast.showToast(msg: "validated");
                       Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentMethodScreen(amount: int.parse(amountController.text))));
                     }
                   },

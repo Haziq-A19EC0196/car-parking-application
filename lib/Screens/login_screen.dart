@@ -168,23 +168,48 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future login(String email, String password) async {
-    UserCredential userCred = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password);
 
-    final snapshot = await FirebaseFirestore.instance.collection("customers").doc(userCred.user!.uid).get();
-    final user = UserModel.fromJson(snapshot.data()!);
-    user.userId = userCred.user!.uid;
+    try {
+      UserCredential userCred = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: password);
 
-    if (userCred.user!.emailVerified && mounted) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(user: user,)));
-    } else {
-      Fluttertoast.showToast(
-          msg: "Check your email and verify your account",
+      final snapshot = await FirebaseFirestore.instance.collection("customers").doc(userCred.user!.uid).get();
+      final user = UserModel.fromJson(snapshot.data()!);
+      user.userId = userCred.user!.uid;
+
+      if (userCred.user!.emailVerified && mounted) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(user: user,)));
+      } else {
+        Fluttertoast.showToast(
+            msg: "Check your email and verify your account",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            fontSize: 16.0
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        Fluttertoast.showToast(
+            msg: "Email not found",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            fontSize: 16.0
+        );
+      } else if (e.code == 'wrong-password') {
+        Fluttertoast.showToast(
+            msg: "Wrong email or password",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            fontSize: 16.0
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: e.message!,
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
-          fontSize: 16.0
-      );
+        );
+      }
     }
   }
 

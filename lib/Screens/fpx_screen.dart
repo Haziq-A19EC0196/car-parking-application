@@ -86,7 +86,10 @@ class _FPXScreenState extends State<FPXScreen> {
 
       await updateUserBalance()
         .then((value) => {
-        Fluttertoast.showToast(msg: "Payment successfully completed")
+        Fluttertoast.showToast(msg: "Payment successfully completed"),
+      Navigator.of(context).pop(),
+      Navigator.of(context).pop(),
+      Navigator.of(context).pop(),
       });
     } on Exception catch (e) {
       if (e is StripeException) {

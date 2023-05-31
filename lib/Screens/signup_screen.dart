@@ -15,6 +15,8 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
+  final formKey = GlobalKey<FormState>();
+
   // Text controllers
   TextEditingController nameController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
@@ -158,7 +160,7 @@ class _SignupPageState extends State<SignupPage> {
       phone: phone,
       parkingRef: [],
       inside: false,
-      balance: 0,
+      balance: 0.00,
     );
 
     await user.set(userData.toJson());
@@ -170,7 +172,7 @@ class _SignupPageState extends State<SignupPage> {
           email: email,
           password: password)
           .then((value) => {
-            value.user?.sendEmailVerification(),
+            // value.user?.sendEmailVerification(),
 
             createUser(value.user!.uid, name, phone, email),
             Fluttertoast.showToast(

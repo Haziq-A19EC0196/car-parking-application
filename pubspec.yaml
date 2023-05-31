@@ -47,6 +47,8 @@ dependencies:
   # For payment
   flutter_stripe: ^9.2.0
   http: ^1.0.0
+  # Biometrics
+  local_auth: ^2.1.6
 
 dev_dependencies:
   flutter_test:

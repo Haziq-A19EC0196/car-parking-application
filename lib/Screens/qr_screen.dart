@@ -116,6 +116,7 @@ class _QRScreenState extends State<QRScreen> {
             if(scanData.code == doc.id && doc.data()["userIdRef"] == null) {
               docFound = true;
               updateEntry(doc.id, userId);
+              Navigator.pop(context);
               break;
             }
           }
@@ -127,6 +128,7 @@ class _QRScreenState extends State<QRScreen> {
             if(scanData.code == doc.id) {
               docFound = true;
               updateExit(doc.id, userId);
+              // Navigator.pop(context);
               break;
             }
           }
@@ -177,12 +179,8 @@ class _QRScreenState extends State<QRScreen> {
     var entryData = {
       'exitTime' : FieldValue.serverTimestamp(),
     };
-    var userData = {
-      'inside' : false,
-    };
 
     await entryRef.update(entryData);
-    await userRef.update(userData);
     // await exitRef.delete();
 
     final entrySnapshot = await entryRef.get();
@@ -190,16 +188,27 @@ class _QRScreenState extends State<QRScreen> {
     Timestamp exitTime = entrySnapshot.data()!["exitTime"];
     DateTime entryDateTime = entryTime.toDate();
     DateTime exitDateTime = exitTime.toDate();
-    // Get user balance
+    var currBalance = widget.user.balance;
 
     final parkDurationInMinutes = exitDateTime.difference(entryDateTime).inMinutes;
-    // Calculate fee
+    final totalFee = parkDurationInMinutes; // RM1 per minute for testing
 
-    var durationData = {
-      'totalDurationInMinutes' : parkDurationInMinutes,
-      // Update fee
-    };
+    if(currBalance < totalFee) {
+      debugPrint("Current balance is $currBalance and totalFee is $totalFee");
+      debugPrint(widget.user.toJson().toString());
+    } else {
+      var durationData = {
+        'totalDurationInMinutes' : parkDurationInMinutes,
+        'totalFee': totalFee,
+      };
 
-    await entryRef.update(durationData);
+      var userData = {
+        'inside': false,
+        'balance': FieldValue.increment(-totalFee),
+      };
+
+      await entryRef.update(durationData);
+      await userRef.update(userData);
+    }
   }
 }

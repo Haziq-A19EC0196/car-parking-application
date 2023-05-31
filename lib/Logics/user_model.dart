@@ -7,7 +7,7 @@ class UserModel {
   final String phone;
   List parkingRef;
   bool inside;
-  int balance;
+  double balance;
 
   UserModel({
     this.userId = '',
@@ -23,7 +23,7 @@ class UserModel {
     'name': name,
     'email': email,
     'phone': phone,
-    'parkingRef': parkingRef,
+    'parkingEntryRef': parkingRef,
     'inside': inside,
     'balance': balance,
   };
@@ -34,6 +34,6 @@ class UserModel {
     phone: data['phone'],
     parkingRef: data['parkingEntryRef'],
     inside: data['inside'],
-    balance: data['balance'],
+    balance: data['balance'].toDouble(),
   );
 }
