@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../Logics/local_auth_api.dart';
 import '../Logics/user_model.dart';
 import '../custom_widgets.dart';
 
@@ -21,31 +22,16 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  // Login function
-  // static Future<User?> loginWithEmailPassword({
-  //   required String email,
-  //   required String password,
-  //   required BuildContext context
-  // }) async {
-  //   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-  //   User? user;
-  //   try {
-  //     UserCredential userCredential = await firebaseAuth
-  //         .signInWithEmailAndPassword(
-  //         email: email,
-  //         password: password);
-  //     user = userCredential.user;
-  //   } on FirebaseAuthException catch (e) {
-  //     if (e.code == "user-not-found") {
-  //       print("No user associated with that email.");
-  //     }
-  //   }
-  //
-  //   return user;
-  // }
+  bool userExist = false;
 
   @override
   Widget build(BuildContext context) {
+    if (FirebaseAuth.instance.currentUser != null) {
+      userExist = true;
+      authenticateUser();
+    } else {
+      userExist = false;
+    }
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
@@ -64,9 +50,9 @@ class _LoginPageState extends State<LoginPage> {
               const Text(
                 "AEON Parking App",
                 style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 25.0,
-                    fontWeight: FontWeight.bold
+                  color: Colors.black,
+                  fontSize: 25.0,
+                  fontWeight: FontWeight.bold
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -124,6 +110,27 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.025,
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.75,
+                child: RawMaterialButton(
+                  fillColor: userExist ? Colors.blue : Colors.grey,
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0)
+                  ),
+                  onPressed: userExist ? authenticateUser : () {Fluttertoast.showToast(msg: "No user session found");},
+                  child: const Text(
+                    "Login with Fingerprint",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18.0
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(
                 height: 40.0,
               ),
@@ -134,7 +141,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: const Text(
                   "Forgot password?",
                   style: TextStyle(
-                    color: Colors.blue
+                      color: Colors.blue
                   ),
                 ),
               ),
@@ -142,29 +149,30 @@ class _LoginPageState extends State<LoginPage> {
                 height: 10.0,
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Don't have an account yet? ",
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const SignupPage()));
-                    },
-                    child: const Text(
-                      "Sign Up",
-                      style: TextStyle(
-                        color: Colors.blue
-                      ),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Don't have an account yet? ",
                     ),
-                  )
-                ]
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const SignupPage()));
+                      },
+                      child: const Text(
+                        "Sign Up",
+                        style: TextStyle(
+                            color: Colors.blue
+                        ),
+                      ),
+                    )
+                  ]
               ),
             ],
           ),
         )
       )
     );
+
   }
 
   Future login(String email, String password) async {
@@ -223,5 +231,16 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     return null;
+  }
+
+  Future<void> authenticateUser() async {
+    final isAuthenticated = await LocalAuthApi.authenticateWithBiometrics();
+    var data = await FirebaseFirestore.instance.collection("customers").doc(FirebaseAuth.instance.currentUser!.uid).get();
+
+    if (isAuthenticated && mounted) {
+      UserModel user = UserModel.fromJson(data.data()!);
+      user.userId = FirebaseAuth.instance.currentUser!.uid;
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(user: user)));
+    }
   }
 }

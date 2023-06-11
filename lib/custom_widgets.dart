@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 TextField customTextField(String text, IconData icon, bool isPassword, TextEditingController controller) {
@@ -60,6 +62,40 @@ class MenuButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class ParkTimer extends StatefulWidget {
+  // DateTime dateTime;
+  const ParkTimer({Key? key}) : super(key: key);
+
+  @override
+  State<ParkTimer> createState() => _ParkTimerState();
+}
+
+class _ParkTimerState extends State<ParkTimer> {
+  int time = 1;
+
+  void startTimer() {
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        time++;
+      });
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          time.toString()
+        ),
+        RawMaterialButton(
+          onPressed: startTimer,
+        ),
+      ],
     );
   }
 }

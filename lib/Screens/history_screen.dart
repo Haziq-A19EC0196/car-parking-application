@@ -78,6 +78,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               }
 
               return Container(
+                margin: const EdgeInsets.fromLTRB(10, 5, 10, 0),
                 padding: const EdgeInsets.all(15),
                 color: Colors.grey.shade300,
                 child: Column(

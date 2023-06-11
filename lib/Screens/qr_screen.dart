@@ -181,7 +181,7 @@ class _QRScreenState extends State<QRScreen> {
     };
 
     await entryRef.update(entryData);
-    // await exitRef.delete();
+    await exitRef.delete();
 
     final entrySnapshot = await entryRef.get();
     Timestamp entryTime = entrySnapshot.data()!["entryTime"];

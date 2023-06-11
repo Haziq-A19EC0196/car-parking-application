@@ -50,36 +50,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  bool authenticated = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: StreamBuilder<User?> (
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              authenticateUser();
-              return const Text("Error");
-            } else {
-              return const LoginPage();
-            }
-          },
-        )
+    return const Scaffold(
+        body: LoginPage(),
     );
-  }
-
-  Future<void> authenticateUser() async {
-    final isAuthenticated = await LocalAuthApi.authenticateWithBiometrics();
-    if (isAuthenticated && mounted) {
-      UserModel user = UserModel(userId: FirebaseAuth.instance.currentUser!.uid, name: "test", email: "test", phone: "test", parkingRef: [], inside: false, balance: 0);
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(user: user)));
-    } else {
-      await FirebaseAuth.instance.signOut();
-      Fluttertoast.showToast(
-        msg: "Biometric auth failed, please sign in manually.",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-      );
-    }
   }
 }
