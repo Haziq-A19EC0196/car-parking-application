@@ -33,7 +33,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           var docList = snapshot.data!.docs;
 
           if (docList.isEmpty) {
-            debugPrint("doclist empty");
             return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -69,8 +68,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 exitTime = docList[index].data()['exitTime'];
                 exitTimeStr = exitTime.toDate().toString();
 
-                duration = docList[index].data()['totalDurationInMinutes'].toString();
-                fee = docList[index].data()['totalFee'].toString();
+                duration = "${docList[index].data()['totalDurationInMinutes'].toString()} minutes";
+                fee = "RM ${docList[index].data()['totalFee'].toStringAsFixed(2)}";
               } else {
                 exitTimeStr = "-";
                 duration = "-";

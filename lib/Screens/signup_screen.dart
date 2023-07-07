@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../Logics/reg_exp.dart';
 import '../custom_widgets.dart';
 
 class SignupPage extends StatefulWidget {
@@ -34,98 +35,133 @@ class _SignupPageState extends State<SignupPage> {
         ),
         body: SingleChildScrollView(
           padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
-          child: Column(
-            // mainAxisAlignment: MainAxisAlignment.center,
-            // crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
-              const Text(
-                "AEON Parking App",
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 25.0,
-                    fontWeight: FontWeight.bold
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
-              const Text(
-                "Welcome!\nFill in your details to register",
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.normal
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.05,
-              ),
-              customTextField(
-                  "Enter your name",
-                  Icons.person,
-                  false,
-                  nameController
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.03,
-              ),
-              customTextField(
-                  "Enter your phone number",
-                  Icons.phone,
-                  false,
-                  phoneController
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.03,
-              ),
-              customTextField(
-                  "Enter your email",
-                  Icons.mail,
-                  false,
-                  emailController
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.03,
-              ),
-              customTextField(
-                  "Enter your password",
-                  Icons.key,
-                  true,
-                  passwordController
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.075,
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.75,
-                child: RawMaterialButton(
-                  fillColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 15.0),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)
+          child: Form(
+            key: formKey,
+            child: Column(
+              // mainAxisAlignment: MainAxisAlignment.center,
+              // crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+                const Text(
+                  "AEON Parking App",
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 25.0,
+                      fontWeight: FontWeight.bold
                   ),
-                  onPressed: () async {
-                    final name = nameController.text.trim();
-                    final phone = phoneController.text.trim();
-                    final email = emailController.text.trim();
-                    final pass = passwordController.text.trim();
-
-                    await signup(name, phone, email, pass);
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+                const Text(
+                  "Welcome!\nFill in your details to register",
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.normal
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.05,
+                ),
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.person_outline),
+                    hintText: "Enter your name",
+                  ),
+                  validator: (value) {
+                    if(value!.isEmpty || !RegularExpressions.nameRegExp.hasMatch(value)) {
+                      return "Ensure your name is spelled correctly";
+                    } else {
+                      return null;
+                    }
                   },
-                  child: const Text(
-                    "Sign Up",
-                    style: TextStyle(
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.03,
+                ),
+                TextFormField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.phone_outlined),
+                    hintText: "Enter your phone number",
+                  ),
+                  validator: (value) {
+                    if(value!.isEmpty || !RegularExpressions.phoneRegExp.hasMatch(value)) {
+                      return "Enter a correct phone number";
+                    } else {
+                      return null;
+                    }
+                  },
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.03,
+                ),
+                TextFormField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.email_outlined),
+                    hintText: "Enter your email address",
+                  ),
+                  validator: (value) {
+                    if(value!.isEmpty || !RegularExpressions.emailRegExp.hasMatch(value)) {
+                      return "Enter a correct email address";
+                    } else {
+                      return null;
+                    }
+                  },
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.03,
+                ),
+                TextFormField(
+                  controller: passwordController,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.key),
+                    hintText: "Enter your password",
+                  ),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return "Password cannot be empty";
+                    }
+                  },
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.075,
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.75,
+                  child: RawMaterialButton(
+                    fillColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 15.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0)
+                    ),
+                    onPressed: () async {
+                      if (formKey.currentState!.validate()) {
+                        final name = nameController.text.trim();
+                        final phone = phoneController.text.trim();
+                        final email = emailController.text.trim();
+                        final pass = passwordController.text.trim();
+
+                        await signup(name, phone, email, pass);
+                      }
+                    },
+                    child: const Text(
+                      "Sign Up",
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 18.0
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 40.0,
-              ),
-              Row(
+                const SizedBox(
+                  height: 40.0,
+                ),
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     const Text(
@@ -143,9 +179,11 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                     )
                   ]
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
+
         ),
       ),
     );
@@ -161,6 +199,7 @@ class _SignupPageState extends State<SignupPage> {
       parkingRef: [],
       inside: false,
       balance: 0.00,
+      isAdmin: false,
     );
 
     await user.set(userData.toJson());
@@ -172,16 +211,10 @@ class _SignupPageState extends State<SignupPage> {
           email: email,
           password: password)
           .then((value) => {
-            // value.user?.sendEmailVerification(),
-
+            value.user?.sendEmailVerification(),
             createUser(value.user!.uid, name, phone, email),
-            Fluttertoast.showToast(
-                msg: "Successfully signed up",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                fontSize: 16.0
-            ),
-            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const LoginPage()))
+            Fluttertoast.showToast(msg: "Successfully signed up",),
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const LoginPage())),
       });
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {

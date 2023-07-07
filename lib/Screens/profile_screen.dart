@@ -132,16 +132,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               if (editEnabled) {
                                 if(formKey.currentState!.validate()) {
                                   var userData = {
-                                    'name': nameController.value,
-                                    'phone': phoneController.value,
+                                    'name': nameController.text,
+                                    'phone': phoneController.text,
                                   };
 
-                                  await FirebaseFirestore.instance.collection("customers").doc(FirebaseAuth.instance.currentUser!.uid).update(userData)
-                                    .then((value) => {
-                                  Fluttertoast.showToast(msg: "Profile updated"),
-                                  }).catchError((error) {
-                                    Fluttertoast.showToast(msg: "Unable to update profile: ${error.toString()}");
-                                  });
+                                  if (userData['name'] == user.name && userData['phone'] == user.phone) {
+                                    Fluttertoast.showToast(msg: "No change");
+                                  } else {
+                                    editEnabled = false;
+                                    await FirebaseFirestore.instance.collection("customers").doc(FirebaseAuth.instance.currentUser!.uid).update(userData)
+                                        .then((value) => {
+                                      Fluttertoast.showToast(msg: "Profile updated"),
+                                    }).catchError((error) {
+                                      Fluttertoast.showToast(msg: "Unable to update profile: ${error.toString()}");
+                                    });
+                                  }
                                 }
                               }
                             },

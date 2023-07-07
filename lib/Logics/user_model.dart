@@ -8,6 +8,7 @@ class UserModel {
   List parkingRef;
   bool inside;
   double balance;
+  bool isAdmin;
 
   UserModel({
     this.userId = '',
@@ -17,6 +18,7 @@ class UserModel {
     required this.parkingRef,
     required this.inside,
     required this.balance,
+    required this.isAdmin,
   });
 
   Map<String, dynamic> toJson() => {
@@ -26,6 +28,7 @@ class UserModel {
     'parkingEntryRef': parkingRef,
     'inside': inside,
     'balance': balance,
+    'isAdmin': isAdmin,
   };
 
   static UserModel fromJson(Map<String, dynamic> data) => UserModel(
@@ -35,5 +38,6 @@ class UserModel {
     parkingRef: data['parkingEntryRef'],
     inside: data['inside'],
     balance: data['balance'].toDouble(),
+    isAdmin: data['isAdmin'],
   );
 }

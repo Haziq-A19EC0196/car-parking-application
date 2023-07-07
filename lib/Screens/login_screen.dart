@@ -23,11 +23,13 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController passwordController = TextEditingController();
 
   bool userExist = false;
+  bool authOnce = true;
 
   @override
   Widget build(BuildContext context) {
-    if (FirebaseAuth.instance.currentUser != null) {
+    if (FirebaseAuth.instance.currentUser != null && authOnce) {
       userExist = true;
+      authOnce = false;
       authenticateUser();
     } else {
       userExist = false;
@@ -178,23 +180,32 @@ class _LoginPageState extends State<LoginPage> {
   Future login(String email, String password) async {
 
     try {
+      showProgressDialog();
+
       UserCredential userCred = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: email,
           password: password);
 
-      final snapshot = await FirebaseFirestore.instance.collection("customers").doc(userCred.user!.uid).get();
+      final snapshot = await FirebaseFirestore.instance
+          .collection("customers")
+          .doc(userCred.user!.uid).get();
       final user = UserModel.fromJson(snapshot.data()!);
       user.userId = userCred.user!.uid;
 
       if (userCred.user!.emailVerified && mounted) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(user: user,)));
+        Navigator.pop(context);
+        Navigator.of(context)
+            .pushReplacement(
+            MaterialPageRoute(builder: (context) => HomeScreen(user: user,))
+        );
       } else {
         Fluttertoast.showToast(
             msg: "Check your email and verify your account",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
-            fontSize: 16.0
+            fontSize: 16.0,
         );
+        Navigator.of(context).pop();
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
@@ -218,7 +229,23 @@ class _LoginPageState extends State<LoginPage> {
           gravity: ToastGravity.BOTTOM,
         );
       }
+
+      Navigator.of(context).pop();
+    } finally {
+      debugPrint("try complete");
     }
+  }
+
+  void showProgressDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
   }
 
   Future<UserModel?> getUserData() async {
@@ -235,12 +262,28 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> authenticateUser() async {
     final isAuthenticated = await LocalAuthApi.authenticateWithBiometrics();
+    showProgressDialog();
     var data = await FirebaseFirestore.instance.collection("customers").doc(FirebaseAuth.instance.currentUser!.uid).get();
 
-    if (isAuthenticated && mounted) {
-      UserModel user = UserModel.fromJson(data.data()!);
-      user.userId = FirebaseAuth.instance.currentUser!.uid;
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(user: user)));
+    if (mounted) {
+      if (isAuthenticated) {
+        if (FirebaseAuth.instance.currentUser!.emailVerified && mounted) {
+          UserModel user = UserModel.fromJson(data.data()!);
+          user.userId = FirebaseAuth.instance.currentUser!.uid;
+          Navigator.pop(context);
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(user: user)));
+        } else {
+          Fluttertoast.showToast(
+            msg: "Check your email and verify your account",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            fontSize: 16.0,
+          );
+          Navigator.pop(context);
+        }
+      } else {
+        Navigator.pop(context);
+      }
     }
   }
 }

@@ -1,12 +1,13 @@
 import 'dart:async';
 
-import 'package:car_parking_application/Logics/local_auth_api.dart';
 import 'package:car_parking_application/Logics/user_model.dart';
+import 'package:car_parking_application/Screens/admin_screen.dart';
 import 'package:car_parking_application/Screens/availability_screen.dart';
 import 'package:car_parking_application/Screens/history_screen.dart';
 import 'package:car_parking_application/Screens/profile_screen.dart';
 import 'package:car_parking_application/Screens/qr_screen.dart';
 import 'package:car_parking_application/Screens/topup_screen.dart';
+import 'package:car_parking_application/Screens/total_revenue_screen.dart';
 import 'package:car_parking_application/custom_widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,7 +29,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    final Stream<DocumentSnapshot<Map<String, dynamic>>> userStream = FirebaseFirestore.instance.collection("customers").doc(widget.user.userId).snapshots();
+    // final Stream<DocumentSnapshot<Map<String, dynamic>>> userStream = FirebaseFirestore.instance.collection("customers").doc(widget.user.userId).snapshots();
 
     return Scaffold(
       appBar: AppBar(
@@ -85,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>> (
-        stream: userStream,
+        stream: FirebaseFirestore.instance.collection("customers").doc(FirebaseAuth.instance.currentUser!.uid).snapshots(),
         builder: (context, snapshot) {
           if(snapshot.hasError) {
             return Text("Something went wrong! ${snapshot.error.toString()}");
@@ -98,7 +99,12 @@ class _HomeScreenState extends State<HomeScreen> {
               (context) => const AvailabilityScreen(),
               (context) => QRScreen(user: user),
             ];
-            final List icons = [const Icon(Icons.car_repair, size: 40), const Icon(Icons.qr_code, size: 40,)];
+            final List icons = [const Icon(Icons.local_parking, size: 40, color: Colors.blueAccent,), const Icon(Icons.qr_code, size: 40, color: Colors.black54,)];
+
+            if (user.isAdmin) {
+              // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const AdminScreen()));
+              return const AdminScreen();
+            }
 
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -110,6 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       homeScreenText("Balance"),
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.01,),
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.2,
                         width: MediaQuery.of(context).size.width * 0.9,
@@ -164,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     },
                                     style: ElevatedButton.styleFrom(
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                                      backgroundColor: Colors.grey,
+                                      backgroundColor: Colors.grey.shade400,
                                     ),
                                     child: const Text(
                                       "+ Reload",
@@ -181,6 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
                       homeScreenText("Parking Status"),
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.01,),
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.2,
                         width: MediaQuery.of(context).size.width * 0.9,
@@ -202,33 +210,34 @@ class _HomeScreenState extends State<HomeScreen> {
                               Timestamp entryTime = snapshot.data!.data()!['entryTime'];
                               DateTime entryDateTime = entryTime.toDate();
 
-                              String convertedEntryTime = "${entryDateTime.hour.toString()}:${entryDateTime.minute.toString()}  ${entryDateTime.day.toString()}/${entryDateTime.month.toString()}/${entryDateTime.year.toString()}";
+                              String convertedEntryTime = "${entryDateTime.hour.toString()}:${entryDateTime.minute.toString().padLeft(2, '0')}  ${entryDateTime.day.toString()}/${entryDateTime.month.toString()}/${entryDateTime.year.toString()}";
+                              // String convertedEntryTime = "${entryDateTime.hour.toString()}:${entryDateTime.minute.toString().padLeft(2, '0')}  23/${entryDateTime.month.toString()}/${entryDateTime.year.toString()}";
                               return Container(
                                 decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    gradient: const LinearGradient(
-                                        begin: Alignment.centerRight,
-                                        end: Alignment.centerLeft,
-                                        colors: [
-                                          Colors.lightGreen,
-                                          Colors.white70
-                                        ]
-                                    )
+                                  borderRadius: BorderRadius.circular(20),
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.lightGreen,
+                                      Colors.white70
+                                    ]
+                                  )
                                 ),
                                 child: Stack(
                                   alignment: Alignment.center,
                                   children: [
                                     Positioned(
-                                      left: 20,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      // left: 20,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          const Icon(Icons.check_circle_outline, color: Colors.lightGreen, size: 40),
+                                          const Icon(Icons.check_circle_outline, color: Colors.lightGreen, size: 60),
                                           const SizedBox(width: 10,),
                                           Text(
-                                            "Park time: $convertedEntryTime",
+                                            "Entry time: $convertedEntryTime",
                                             style: const TextStyle(
-                                              fontSize: 15,
+                                              fontSize: 16,
                                               color: Colors.black,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -243,30 +252,30 @@ class _HomeScreenState extends State<HomeScreen> {
                           ) :
                           Container(
                             decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                gradient: LinearGradient(
-                                    begin: Alignment.centerRight,
-                                    end: Alignment.centerLeft,
-                                    colors: [
-                                      Colors.redAccent.shade100,
-                                      Colors.white70
-                                    ]
-                                )
+                              borderRadius: BorderRadius.circular(20),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.redAccent.shade100,
+                                  Colors.white24
+                                ]
+                              )
                             ),
                             child: const Stack(
                               alignment: Alignment.center,
                               children: [
                                 Positioned(
-                                  left: 20,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  // left: 20,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.close, color: Colors.redAccent, size: 40),
+                                      Icon(Icons.close, color: Colors.redAccent, size: 60),
                                       SizedBox(width: 10,),
                                       Text(
                                         "You are currently not parked",
                                         style: TextStyle(
-                                          fontSize: 15,
+                                          fontSize: 16,
                                           color: Colors.black,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -281,7 +290,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
                       homeScreenText("Menu"),
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.01,),
+                      // SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.175,
                         width: MediaQuery.of(context).size.width,

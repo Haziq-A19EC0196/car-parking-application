@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:car_parking_application/Logics/user_model.dart';
+import 'package:car_parking_application/Screens/home_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -53,9 +55,8 @@ class _FPXScreenState extends State<FPXScreen> {
   }
 
   Future<Map<String, dynamic>> _createPaymentIntent() async {
-    var uname = 'sk_test_51NBDk2IAWGSq2YIwnEZKJltI0lHzngUySYl4SA0eiPySnqDUpZxohF0tiXkOoXoFB1JCfW5g5W7oc3J6O31XD0W100kYTHwD6v';
-    var pass = '';
-    var auth = 'Basic ${base64Encode(utf8.encode('$uname:$pass'))}';
+    var apiKey = 'sk_test_51NBDk2IAWGSq2YIwnEZKJltI0lHzngUySYl4SA0eiPySnqDUpZxohF0tiXkOoXoFB1JCfW5g5W7oc3J6O31XD0W100kYTHwD6v';
+    var auth = 'Basic ${base64Encode(utf8.encode('$apiKey:'))}';
 
     var headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -71,6 +72,8 @@ class _FPXScreenState extends State<FPXScreen> {
   }
 
   Future _pay(BuildContext context) async {
+    showProgressDialog();
+
     final result = await _createPaymentIntent();
     final clientSecret = await result['client_secret'];
 
@@ -84,16 +87,19 @@ class _FPXScreenState extends State<FPXScreen> {
         ),
       );
 
+      var snapshot = await FirebaseFirestore.instance.collection("customers").doc(FirebaseAuth.instance.currentUser!.uid).get();
+      UserModel user = UserModel.fromJson(snapshot.data()!);
+      user.userId = FirebaseAuth.instance.currentUser!.uid;
+
       await updateUserBalance()
         .then((value) => {
         Fluttertoast.showToast(msg: "Payment successfully completed"),
-      Navigator.of(context).pop(),
-      Navigator.of(context).pop(),
-      Navigator.of(context).pop(),
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(user: user))),
       });
     } on Exception catch (e) {
       if (e is StripeException) {
         if(mounted) {
+          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error from Stripe: ${e.error.localizedMessage}'),
@@ -102,6 +108,7 @@ class _FPXScreenState extends State<FPXScreen> {
         }
       } else {
         if(mounted) {
+          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Unforeseen error: $e'),
@@ -115,5 +122,17 @@ class _FPXScreenState extends State<FPXScreen> {
   Future updateUserBalance() async {
     final userRef = FirebaseFirestore.instance.collection("customers").doc(FirebaseAuth.instance.currentUser!.uid);
     await userRef.update({'balance': FieldValue.increment(widget.amount)});
+  }
+
+  void showProgressDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
   }
 }

@@ -13,9 +13,7 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-    Widget availabilityWidget = Scaffold(
-      backgroundColor: Colors.white,
+    return Scaffold(
       body: StreamBuilder<QuerySnapshot>(
         stream: _stream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -27,24 +25,10 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
             var parking1 = data.docs[0]["isEmpty"];
             var parking2 = data.docs[1]["isEmpty"];
 
-            Widget img = Image.asset("assets/car-transparent.png", scale: 5,);
+            Widget img = Image.asset("assets/car-transparent.png", scale: 4,);
 
-            Widget row = Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Container(
-                  color: parking1 ? Colors.green : Colors.red,
-                  child: img,
-                ),
-                Container(
-                  color: parking2 ? Colors.green : Colors.red,
-                  child: img,
-                ),
-
-              ],
-            );
-
-            Widget scaffold = Scaffold(
+            return Scaffold(
+              backgroundColor: Colors.white,
               appBar: AppBar(
                 title: const Text("Availability"),
                 centerTitle: true,
@@ -53,23 +37,48 @@ class _AvailabilityScreenState extends State<AvailabilityScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   SizedBox(height: MediaQuery.of(context).size.height * 0.15,),
-                  Text("Parking 1 is ${parking1 ? "empty" : "not empty"}"),
-                  Text("Parking 2 is ${parking2 ? "empty" : "not empty"}"),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.1,),
-                  row,
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.1,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                        decoration: const BoxDecoration(
+                          border: Border(top: BorderSide(width: 1), left: BorderSide(width: 1), right: BorderSide(width: 0.5)),
+                        ),
+                        child: Container(
+                          color: parking1 ? Colors.green : Colors.red,
+                          child: img,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                        decoration: const BoxDecoration(
+                          border: Border(top: BorderSide(width: 1), left: BorderSide(width: 0.5), right: BorderSide(width: 1)),
+                        ),
+                        child: Container(
+                          color: parking2 ? Colors.green : Colors.red,
+                          child: img,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(parking1 ? "Empty" : "Occupied"),
+                      const SizedBox(width: 55,),
+                      Text(parking2 ? "Empty" : "Occupied"),
+                    ],
+                  ),
                 ],
               ),
             );
-
-            return scaffold;
           } else {
             return const Center(child: CircularProgressIndicator(),);
           }
         },
       ),
     );
-
-    return availabilityWidget;
   }
 }

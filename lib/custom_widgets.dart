@@ -34,68 +34,41 @@ class MenuButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8),
       child: Container(
-        height: 75,
         width: MediaQuery.of(context).size.height * 0.175,
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
+          color: Colors.blue.shade200,
           borderRadius: BorderRadius.circular(20),
-          color: Colors.lightBlueAccent.shade100,
         ),
-        child: InkWell(
-          onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: route));
-          },
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Positioned(
-                top: 25,
-                child: icon,
-              ),
-              Positioned(
-                bottom: 10,
-                child: Text(
-                  text,
-                  textAlign: TextAlign.center,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.grey.shade500),
+            color: Colors.white38
+          ),
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: route));
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned(
+                  top: 20,
+                  child: icon,
                 ),
-              ),
-            ],
+                Positioned(
+                  bottom: 10,
+                  child: Text(
+                    text,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
-}
-
-class ParkTimer extends StatefulWidget {
-  // DateTime dateTime;
-  const ParkTimer({Key? key}) : super(key: key);
-
-  @override
-  State<ParkTimer> createState() => _ParkTimerState();
-}
-
-class _ParkTimerState extends State<ParkTimer> {
-  int time = 1;
-
-  void startTimer() {
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        time++;
-      });
-    });
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          time.toString()
-        ),
-        RawMaterialButton(
-          onPressed: startTimer,
-        ),
-      ],
     );
   }
 }

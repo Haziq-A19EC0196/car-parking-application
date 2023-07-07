@@ -1,6 +1,5 @@
 import 'package:car_parking_application/Screens/paymentmethod_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class TopUpScreen extends StatefulWidget {
   const TopUpScreen({Key? key}) : super(key: key);
@@ -41,14 +40,15 @@ class _TopUpScreenState extends State<TopUpScreen> {
                     if(value!.isEmpty || !RegExp(r'^\d+$').hasMatch(value)) {
                       return "Incorrect value";
                     } else {
-                      if(int.parse(value) < 1) {
-                        return "Enter minimum amount of RM1";
+                      if(int.parse(value) < 2) {
+                        return "Enter minimum amount of RM2";
                       } else {
                         return null;
                       }
                     }
                   },
                 ),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.025,),
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.25,
                   child: GridView.builder(

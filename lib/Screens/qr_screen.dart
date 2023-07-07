@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:car_parking_application/Logics/user_model.dart';
+import 'package:car_parking_application/Screens/topup_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class QRScreen extends StatefulWidget {
@@ -68,7 +70,19 @@ class _QRScreenState extends State<QRScreen> {
                   ),
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.1,
-                    child: Text(!data!['inside'] ? "Scan code at the entry" : "Scan code at the exit"),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white38,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        !data!['inside'] ? "Scan code at the entrance" : "Scan code at the exit",
+                        style: const TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                    )
                   ),
                 ],
               ),
@@ -116,24 +130,22 @@ class _QRScreenState extends State<QRScreen> {
             if(scanData.code == doc.id && doc.data()["userIdRef"] == null) {
               docFound = true;
               updateEntry(doc.id, userId);
-              Navigator.pop(context);
               break;
             }
           }
           if(!docFound) {
-            // Handle invalid qr code
+            Fluttertoast.showToast(msg: "Invalid QR Code. Please try again.");
           }
         } else {
           for(var doc in exitList.docs) {
-            if(scanData.code == doc.id) {
+            if(scanData.code == doc.id && !docFound) {
               docFound = true;
               updateExit(doc.id, userId);
-              // Navigator.pop(context);
               break;
             }
           }
           if(!docFound) {
-            // Handle invalid qr code
+            Fluttertoast.showToast(msg: "Invalid QR Code. Please try again.");
           }
         }
       });
@@ -164,6 +176,28 @@ class _QRScreenState extends State<QRScreen> {
 
     await entryRef.update(entryData);
     await userRef.update(userData);
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Balance"),
+            content: const Text("Ensure you have sufficient balance before exiting."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: const Text('Ok'),
+              ),
+            ],
+          );
+        },
+        barrierDismissible: false,
+      );
+    }
   }
 
   Future updateExit(String parkingExitId, String userId) async {
@@ -188,27 +222,80 @@ class _QRScreenState extends State<QRScreen> {
     Timestamp exitTime = entrySnapshot.data()!["exitTime"];
     DateTime entryDateTime = entryTime.toDate();
     DateTime exitDateTime = exitTime.toDate();
-    var currBalance = widget.user.balance;
+    double currBalance = widget.user.balance;
 
     final parkDurationInMinutes = exitDateTime.difference(entryDateTime).inMinutes;
-    final totalFee = parkDurationInMinutes; // RM1 per minute for testing
+    final double totalFee = parkDurationInMinutes.toDouble(); // RM1 per minute for testing, change accordingly
 
-    if(currBalance < totalFee) {
-      debugPrint("Current balance is $currBalance and totalFee is $totalFee");
-      debugPrint(widget.user.toJson().toString());
+    if (currBalance < totalFee) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("Insufficient Balance"),
+              content: Text("You have insufficient balance, please top-up first.\nTotal fee: RM ${totalFee.toStringAsFixed(2)}"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const TopUpScreen()));
+                  },
+                  child: const Text('Ok'),
+                ),
+              ],
+            );
+          },
+          barrierDismissible: false,
+        );
+      }
+      // Fluttertoast.showToast(
+      //   msg: "You have insufficient balance, please top-up before exiting.",
+      //   toastLength: Toast.LENGTH_LONG
+      // );
     } else {
-      var durationData = {
-        'totalDurationInMinutes' : parkDurationInMinutes,
-        'totalFee': totalFee,
-      };
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("Exit"),
+              content: Text("Total fee: RM ${totalFee.toStringAsFixed(2)},\nApprove payment?"),
+              actions: [
+                TextButton(
+                  child: const Text("Cancel"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  onPressed: () async {
+                    var durationData = {
+                      'totalDurationInMinutes' : parkDurationInMinutes,
+                      'totalFee': totalFee,
+                    };
 
-      var userData = {
-        'inside': false,
-        'balance': FieldValue.increment(-totalFee),
-      };
+                    var userData = {
+                      'inside': false,
+                      'balance': FieldValue.increment(-totalFee),
+                    };
 
-      await entryRef.update(durationData);
-      await userRef.update(userData);
+                    await entryRef.update(durationData);
+                    await userRef.update(userData);
+
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    }
+                    // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const TopUpScreen()));
+                  },
+                  child: const Text('Approve'),
+                ),
+              ],
+            );
+          },
+          barrierDismissible: false,
+        );
+      }
     }
   }
 }

@@ -1,13 +1,9 @@
-import 'package:car_parking_application/Logics/local_auth_api.dart';
-import 'package:car_parking_application/Logics/user_model.dart';
-import 'package:car_parking_application/Screens/home_screen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import 'Screens/login_screen.dart';
 
